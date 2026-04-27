@@ -1,12 +1,20 @@
-export default function formatDeadline(deadlineString, now = new Date()) {
+
+/**
+ * Formats a deadline string into a human-readable relative time string.
+ * @param deadlineString - The deadline date string to format
+ * @param now - Optional reference date (defaults to current date/time)
+ * @returns A formatted string describing when the deadline is
+ */
+
+export default function formatDeadline(deadlineString:string, now:Date = new Date()) {
   const deadline = new Date(deadlineString);
   // console.log(deadline);
   
-  const diffMs = deadline - now;
+  const diffMs:number = deadline.getTime() - now.getTime();
   // console.log(diffMs);
-  const diffMinutes = Math.round(diffMs / (1000 * 60));
-  const diffHours = Math.round(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffMinutes:number  = Math.round(diffMs / (1000 * 60));
+  const diffHours:number  = Math.round(diffMs / (1000 * 60 * 60));
+  const diffDays:number  = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   
   const deadlineDate = deadline.toDateString();
   const nowDate = now.toDateString();
@@ -45,11 +53,11 @@ export default function formatDeadline(deadlineString, now = new Date()) {
 }
 
 
-export const timeDistance =(timeGiven)=>{
+export const timeDistance =(timeGiven:Date | string):number=>{
   const now =new Date()
   const time = new Date(timeGiven);
 
   
-  return time - now;
+  return time.getTime() - now.getTime();
   
 }

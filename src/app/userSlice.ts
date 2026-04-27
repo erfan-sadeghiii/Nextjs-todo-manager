@@ -2,17 +2,42 @@
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import type { RootState } from "./store"; 
 
-export const login = createAsyncThunk("user/login", async (email) => {
-    const response = await axios.get(`http://localhost:5000/login?email=${email}`);
+interface UserData {
+  _id: string;
+  email: string;
+  [key: string]: unknown; 
+}
+interface UserInfo {
+  islogin: boolean;
+  userId: string;
+  email: string;
+}
+
+interface UserState {
+  error: string | undefined ;
+  status: 'idle' | 'loading' | 'logout' | 'error';
+  userInfo: UserInfo;
+}
+
+interface StorageUserData {
+  userId: string;
+  email: string;
+}
+
+
+
+export const login = createAsyncThunk<UserData, string>("user/login", async (email) => {
+    const response = await axios.get<UserData>(`http://localhost:5000/login?email=${email}`);
     if (typeof window !== "undefined") {
         localStorage.setItem("user", JSON.stringify(response.data));
     }
     return response.data;
 });
 
-export const signup = createAsyncThunk("user/signup", async (email) => {
-    const response = await axios.post(`http://localhost:5000/signup`, { email });
+export const signup = createAsyncThunk<UserData, string>("user/signup", async (email) => {
+    const response = await axios.post<UserData>(`http://localhost:5000/signup`, { email });
     if (typeof window !== "undefined") {
         localStorage.setItem("user", JSON.stringify(response.data));
     }
@@ -20,7 +45,7 @@ export const signup = createAsyncThunk("user/signup", async (email) => {
 });
 
 
-const initialState = {
+const initialState : UserState = {
     error: "",
     status: "idle",
     userInfo: {
@@ -87,5 +112,6 @@ const userSlice = createSlice({
 });
 
 export const { logout, setUserFromStorage } = userSlice.actions;
-export const selectLogin = state => state.user;
+
+export const selectLogin = (state: RootState) => state.user;
 export default userSlice.reducer;

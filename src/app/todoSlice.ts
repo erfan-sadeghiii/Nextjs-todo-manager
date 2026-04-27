@@ -4,46 +4,74 @@ import axios from "axios";
 import { createSlice, createAsyncThunk, createEntityAdapter, createSelector } from "@reduxjs/toolkit";
 import { StatusFilters } from "./filterSlice";
 import { logout } from "./userSlice";
+import type { RootState } from "./store";
 
+interface Todo {
+  _id: string ;
+  userId: string;
+  title: string;
+  subContent:string;
+  completed: boolean;
+  color?: string;
+  deadline?: string | undefined ;
+  [key: string]: unknown; // For any additional properties from MongoDB
+}
 
-export const fetchTodo = createAsyncThunk("todos/fetchtodo", async (id) => {
-  const response = await axios.get(`http://localhost:5000/get-todos?userId=${id}`)
+interface TodoState {
+  status: 'idle' | 'loading' | 'success' | 'error';
+  toggleStatus: 'idle' | 'loading' | 'error';
+  error: unknown;
+}
+interface AddTodoPayload {
+  user: string;
+  title: string;
+  deadline?: string | undefined ;
+
+}
+
+interface SetColorPayload {
+  id: string;
+  color: string;
+}
+
+export const fetchTodo = createAsyncThunk<Todo[], string>("todos/fetchtodo", async (id) => {
+  const response = await axios.get<Todo[]>(`http://localhost:5000/get-todos?userId=${id}`)
   return response.data
 })
-export const addTodo = createAsyncThunk("todos/addtodo", async (todo) => {
+export const addTodo = createAsyncThunk<Todo, AddTodoPayload>("todos/addtodo", async (todo) => {
   
-  const response = await axios.post('http://localhost:5000/todo-add', {
+  const response = await axios.post<Todo>('http://localhost:5000/todo-add', {
     ...todo, completed: false
   })
   return response.data
 })
 
-export const toggleTodo = createAsyncThunk("todos/toggleTodo", async (id) => {
-  const response = await axios.patch(`http://localhost:5000/todo-toggle/${id}`);
+export const toggleTodo = createAsyncThunk<Todo, string>("todos/toggleTodo", async (id) => {
+  const response = await axios.patch<Todo>(`http://localhost:5000/todo-toggle/${id}`);
   return response.data;
 });
-export const deleteTodo = createAsyncThunk("todos/deleteTodo", async (id) => {
-  const response = await axios.delete(`http://localhost:5000/todo-delete/${id}`);
+export const deleteTodo = createAsyncThunk<{ deletedTodoId: string }, string>("todos/deleteTodo", async (id) => {
+  const response = await axios.delete<{ deletedTodoId: string }>(`http://localhost:5000/todo-delete/${id}`);
   return response.data;
 });
-export const setTodoColor = createAsyncThunk("todos/ChangeColor", async ({id,color}) => {
-  console.log(id,color);
+export const setTodoColor = createAsyncThunk<Todo, SetColorPayload>("todos/ChangeColor", async ({id,color}) => {
+  // console.log(id,color);
   
-  const response = await axios.patch(`http://localhost:5000/todo-change-color/${id}`,{color});
+  const response = await axios.patch<Todo>(`http://localhost:5000/todo-change-color/${id}`,{color});
   return response.data;
 });
 
 
 
 
-const todoAdapter = createEntityAdapter({ selectId: (todo) => todo._id, sortComparer: (a, b) => b._id.localeCompare(a._id) })
+const todoAdapter = createEntityAdapter({ selectId: (todo: Todo) => todo._id, sortComparer: (a: Todo, b: Todo) => b._id.localeCompare(a._id) })
 
 
 export const {
   selectById: selectTodoById,
   selectIds: selectTodoIds
-} = todoAdapter.getSelectors(state => state.todos)
-const initialState = todoAdapter.getInitialState({
+} = todoAdapter.getSelectors<RootState>(state => state.todos)
+const initialState = todoAdapter.getInitialState<TodoState>({
 
   status: 'idle',
   toggleStatus: 'idle',
@@ -132,15 +160,16 @@ const todoSlice = createSlice({
 export default todoSlice.reducer
 
 
- const selectTodoEntities = state => state.todos.entities
+
+const selectTodoEntities = (state: RootState) => state.todos.entities;
 
 export const selectTodos = createSelector(
     selectTodoEntities,
-    (todoEntities) => Object.values(todoEntities)
+   (todoEntities) => Object.values(todoEntities).filter(Boolean) as Todo[]
 )
 
-const selectFilteredTodos = createSelector(selectTodos, state => state.filter,
-    (todos, filters) => {
+const selectFilteredTodos = createSelector([selectTodos, (state: RootState) => state.filter],
+    (todos: Todo[], filters) => {
        
         const { filterStatus } = filters
         const showAll = filterStatus === StatusFilters.All
@@ -160,16 +189,16 @@ const selectFilteredTodos = createSelector(selectTodos, state => state.filter,
 
 export const selectSortedFilteredTodos = createSelector(
   selectFilteredTodos,
-  (todos) =>
+  (todos:Todo[]) =>
     todos
       .slice()
-      .sort((a, b) => {
-        const aTime = new Date(a.deadline);
-        const bTime = new Date(b.deadline);
-
+      .sort((a:Todo, b:Todo) => {
         // Handle missing deadlines (put at end)
         if (!a.deadline) return -1;
         if (!b.deadline) return -1;
+        const aTime = new Date(a.deadline).getTime();
+        const bTime = new Date(b.deadline).getTime();
+
 
         return aTime - bTime; 
       })

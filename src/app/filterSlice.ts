@@ -9,7 +9,7 @@ export const StatusFilters = {
 }
 
 
-
+export type StatusFilter = typeof StatusFilters[keyof typeof StatusFilters];
 
 
 
