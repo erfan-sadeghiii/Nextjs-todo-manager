@@ -1,7 +1,8 @@
-import { useDispatch, useSelector } from "react-redux";
+// import { useDispatch, useSelector } from "react-redux";
 import { deleteTodo, selectTodoById, setTodoColor, toggleTodo } from "../todoSlice";
 import { useEffect, useState } from "react";
 import formatDeadline, { timeDistance } from "../composables/formatDeadline";
+import { useAppDispatch, useAppSelector } from "../hooks/hook";
 const colors = {
   white: "#ffffff",
   blue: "#99b1ff",
@@ -10,16 +11,19 @@ const colors = {
   red: "#ff9999",
   prime: "#dd99ff"
 }
-function TodoItem({ todoId }) {
-  const todo = useSelector(state => selectTodoById(state, todoId))
-  const [check, setCheck] = useState(todo.completed)
+function TodoItem({ todoId }:{  todoId: string;}) {
+  const todo = useAppSelector(state => selectTodoById(state, todoId))
+  const [check, setCheck] = useState<boolean>(todo.completed)
   const [color, setColor] = useState("#fff")
-  const dispatch = useDispatch()
-  let toggleStatus = useSelector(state => state.todos.toggleStatus)
+  const dispatch = useAppDispatch()
+  let toggleStatus = useAppSelector(state => state.todos.toggleStatus)
   const [now, setNow] = useState(new Date());
 
 
 
+   if (!todo) {
+    return null;
+  }
 
 
   const colorOptions = Object.keys(colors).map((c) => (
@@ -30,21 +34,21 @@ function TodoItem({ todoId }) {
 
 
 
-  const handleChangeColor = (color) => {
+  const handleChangeColor = (color:string) => {
    
     dispatch(setTodoColor({id:todo._id,color}))
     setColor(color)
   }
 
   const handleCheck = () => {
-    if (toggleStatus = "idle") {
+    if (toggleStatus == "idle") {
 
       setCheck(prevState => !prevState)
       dispatch(toggleTodo(todo._id))
     }
   }
   const handleDelete = () => {
-    if (toggleStatus = "idle") {
+    if (toggleStatus == "idle") {
 
       dispatch(deleteTodo(todo._id))
     }
@@ -62,7 +66,7 @@ useEffect(() => {
 
   return (
     <div style={{ backgroundColor: colors[todo.color] }} className="bg-white rounded-xl shadow-lg p-4 flex items-center group opacity-70">
-      <input type="checkbox" style={{accentColor :  colors[todo.color]}} value={check} disabled={toggleStatus == "idle" ? false : true} checked={check} onChange={handleCheck} className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary mr-3" />
+      <input type="checkbox" style={{accentColor :  colors[todo.color]}} checked={check} disabled={toggleStatus == "idle" ? false : true}  onChange={handleCheck} className="w-5 h-5 text-primary rounded border-gray-300 focus:ring-primary mr-3" />
       <div className="flex-1">
         <h3 className={check ? "line-through" : ""}>
           <span className="font-medium text-dark">

@@ -1,16 +1,18 @@
 
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState  } from "react";
+// import { useDispatch, useSelector } from "react-redux";
+import { useAppDispatch, useAppSelector } from "../hooks/hook";
 import { login, selectLogin, signup } from "../userSlice";
+import type { RootState } from "../store";
 function LoginForm() {
-   const [email, setEmail] = useState("")
-  const loginInfo = useSelector(state => selectLogin(state))
+   const [email, setEmail] = useState<string>("")
+  const loginInfo = useAppSelector((state:RootState) => selectLogin(state))
 
-  const dispatch = useDispatch()
-  const signInHandler = () => {
+  const dispatch = useAppDispatch()
+  const signInHandler = ():void => {
     dispatch(signup(email))
   }
-  const logInHandler = () => {
+  const logInHandler = ():void => {
     dispatch(login(email))
   }
     return (

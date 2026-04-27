@@ -1,9 +1,9 @@
 import { useSelector } from "react-redux";
 import { selectTodos, selectTodoIds } from "../todoSlice";
-
+import type { RootState } from "../store";
 function TodoFooter() {
 
-  const remainingTodosCount = useSelector(state=>{
+  const remainingTodosCount = useSelector((state:RootState)=>{
     const todos = selectTodos(state).filter(todo=> !todo.completed)
     return todos.length
   })
